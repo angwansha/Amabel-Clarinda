@@ -1,0 +1,21 @@
+{
+    "StackName": "Ec2",
+    "Parameter": [
+        {
+            "ParameterKey": "Instancetype",
+            "ParameterValue": "t2.micro"
+        },
+        {
+            "ParameterKey": "ImageId",
+            "ParameterValue": "ami-06d4b7182ac3480fa"
+        },
+        {
+            "ParameterKey": "KeyName",
+            "ParameterValue": "cloudkeys"
+        },
+        {
+            "ParameterKey": "SecurityGroupId",
+            "ParameterValue": "sg-0f6bf6752f8a206fd,sg-016601a6dde11c38d,sg-0576beaa421f14d4d"
+        }
+    ]
+}

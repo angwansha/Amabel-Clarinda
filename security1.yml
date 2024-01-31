@@ -1,0 +1,128 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: This is for security group.
+
+Parameters:
+  pAppSecurityGroupName:
+    Type: String
+    Default: Effulgencetech-App-SG
+
+  pWebSecurityGroupName:
+    Type: String
+    Default: Effulgencetech-Web-SG
+
+  pELBSecurityGroupName:
+    Type: String
+    Default: Effulgencetech-ELB-SG
+
+  pSecurity1Name:
+    Description: The name of the security group.
+    Type: String
+    Default: AmabelSecurity1
+
+  # pEffulgenceTechVPCCIDR:
+  #   Description: This is the cidr for the vpc
+  #   Type: String
+  #   Default: 10.4.0.0/16
+
+  
+
+#Mappings: 
+
+#Conditions: 
+
+Resources: 
+
+  # https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpc.html#cfn-aws-ec2-vpc-instancetenancy
+  # EffulgenceTechVPC:
+  #   Type: AWS::EC2::VPC
+  #   Properties:
+  #     CidrBlock: !Ref pEffulgenceTechVPCCIDR
+  #     EnableDnsSupport: true
+  #     EnableDnsHostnames: true
+  #     # dedicated | default | host
+  #     InstanceTenancy: default
+  #     Tags:
+  #       - Key: Name
+  #         Value: EffulgenceTechVPC
+
+  # https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html
+  AppSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: Allow access to ssh,https and http.
+      VpcId: !ImportValue 
+        Fn::Sub: 'AmabelNetwork1-VPC'
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0 
+
+  # https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html
+  WebSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow access to ssh,https and http.
+      VpcId: !ImportValue 
+        Fn::Sub: 'AmabelNetwork1-VPC'
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+
+  # https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html
+  ELBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow http to client host
+      VpcId: !ImportValue 
+        Fn::Sub: 'AmabelNetwork1-VPC'
+      SecurityGroupIngress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+
+Outputs:
+
+  AppSecurityGroupId:
+    Description: The ID of the AppSecurityGroup
+    Value: !Ref AppSecurityGroup
+    Export:
+      Name: !Sub "${pSecurity1Name}-AppSecurityGroup"
+
+  WebSecurityGroupId:
+    Description: The ID for the WebSecurityGroup
+    Value: !Ref WebSecurityGroup
+    Export:
+      Name: !Sub "${pSecurity1Name}-WebSecurityGroup"
+
+  ELBSecurityGroupId:
+    Description: The ID of the ELBSecurityGroup
+    Value: !Ref ELBSecurityGroup
+    Export:
+      Name: !Sub "${pSecurity1Name}-ELBSecurityGroup"
+
+  
+
+  

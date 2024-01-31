@@ -1,0 +1,61 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: This is for ec2
+
+Parameters: 
+  WebInstanceType:
+    Type: String
+    Description: ec2 for webinstance.
+    Default: t2.micro
+
+  WebInstanceImageId:
+    Type: String
+    Description: AMI ID
+    Default: ami-06d4b7182ac3480fa
+
+  WebInstanceKeyName:
+    Type: String
+    Description: This is the key for ec2
+    Default: cloudkeys
+
+  pAppName:
+    Description: The name of application.
+    Type: String
+    Default: AmabelSecurity1
+
+  psecurityId:
+    Description: Security groupIds
+    Type: CommaDelimitedList
+    Default: sg-0f6bf6752f8a206fd,sg-016601a6dde11c38d,sg-0576beaa421f14d4d
+
+
+#Mappings: 
+
+#Conditions: 
+
+Resources:
+
+  WebInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      KeyName: !Ref WebInstanceKeyName
+      #DisableApiTermination: 
+      ImageId: !Ref WebInstanceImageId 
+      InstanceType: !Ref WebInstanceType 
+      Monitoring: "true"
+      SecurityGroupIds: !Ref psecurityId
+      SubnetId: !ImportValue
+        AmabelNetwork1-PubSubnet
+       
+      UserData: !Base64 |
+        #!/bin/bash -ex
+        # put your script here
+      Tags:
+        - Key: Name
+          Value: WebInstance
+
+Outputs:
+  WebInstanceID:
+    Description: The Web ID
+    Value: !Ref WebInstance
+    Export: 
+      Name: !Sub "${AWS::StackName}-WebInstance"

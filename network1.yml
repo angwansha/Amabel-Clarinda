@@ -1,0 +1,172 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: This is for VPC,InternetGateway,InternetGateway attachment,PrivateSubnet,PublicSubnet,PrivatesubnetRT and PublicSubnetRT
+
+Parameters: 
+  pEffulgenceTechVPCCIDR:
+    Description: This is the cidr for the vpc
+    Type: String
+    Default: 10.4.0.0/16
+
+  pEffulgenceTechVPCPrivSNCIDR:
+    Description: This is the cidr for the PrivateSubnet
+    Type: String
+    Default: 10.4.1.0/24
+
+  pEffulgenceTechVPCPubSNCIDR:
+    Description: This is the cidr for the PubblicSubnet
+    Type: String
+    Default: 10.4.2.0/24
+
+  pAvailabilityZonePriv:
+    Description: specify AZ
+    Type: String
+    AllowedValues:
+     - us-east-2a
+     - us-east-2b
+    Default: us-east-2a
+
+  pAvailabilityZonePub:
+    Description: specify AZ
+    Type: String
+    AllowedValues:
+     - us-east-2a
+     - us-east-2b
+    Default: us-east-2b
+
+  pNetworkName:
+    Description: The name of the network
+    Type: String
+    Default: AmabelNetwork1
+
+
+#Mappings: 
+
+#Conditions: 
+
+Resources:
+
+  # https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpc.html#cfn-aws-ec2-vpc-instancetenancy
+  EffulgenceTechVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref pEffulgenceTechVPCCIDR
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      # dedicated | default | host
+      InstanceTenancy: default
+      Tags:
+        - Key: Name
+          Value: EffulgenceTechVPC
+
+  # https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-internetgateway.html
+  # https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpc-gateway-attachment.html
+  EffulgenceTechVPCIGW:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: EffulgenceTechVPCIGW
+  EffulgenceTechVPCIGWWatch:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref EffulgenceTechVPC
+      InternetGatewayId: !Ref EffulgenceTechVPCIGW
+
+  # https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnet.html
+  EffulgenceTechVPCPrivSN:
+    Type: AWS::EC2::Subnet
+    Properties: 
+      AvailabilityZone: !Ref pAvailabilityZonePriv
+      CidrBlock: !Ref pEffulgenceTechVPCPrivSNCIDR
+      #Ipv6CidrBlock: String
+      MapPublicIpOnLaunch: "false"
+      Tags:
+        - Key: Name
+          Value: EffulgenceTechVPCPrivSN
+      VpcId: !Ref EffulgenceTechVPC
+
+  # https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-route-table.html
+  EffulgenceTechVPCPrivSNRT:
+    Type: AWS::EC2::RouteTable
+    Properties: 
+      Tags:
+        - Key: Name
+          Value: EffulgenceTechVPCPrivSNRT
+      VpcId: !Ref EffulgenceTechVPC
+
+  # https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnet-route-table-assoc.html
+  EffulgenceTechVPCPrivSNRTassociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId: !Ref EffulgenceTechVPCPrivSNRT
+      SubnetId: !Ref EffulgenceTechVPCPrivSN
+
+  # https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnet.html
+  EffulgenceTechVPCPubSN:
+    Type: AWS::EC2::Subnet
+    Properties: 
+      #AssignIpv6AddressOnCreation: Boolean
+      AvailabilityZone: !Ref pAvailabilityZonePub
+      CidrBlock: !Ref pEffulgenceTechVPCPubSNCIDR
+      MapPublicIpOnLaunch: "true"
+      Tags:
+        - Key: Name
+          Value: EffulgenceTechVPCPubSN
+      VpcId: !Ref EffulgenceTechVPC
+
+  # https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-route-table.html
+  EffulgenceTechVPCPubSNRT:
+    Type: AWS::EC2::RouteTable
+    Properties: 
+      Tags:
+        - Key: Name
+          Value: EffulgenceTechVPCPubSNRT
+      VpcId: !Ref EffulgenceTechVPC
+
+  # https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnet-route-table-assoc.html
+  EffulgenceTechVPCPubSNRTassociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId: !Ref EffulgenceTechVPCPubSNRT
+      SubnetId: !Ref EffulgenceTechVPCPubSN
+
+  # https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-route.html
+  route:
+    Type: AWS::EC2::Route
+    Properties: 
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref EffulgenceTechVPCIGW
+      RouteTableId: !Ref EffulgenceTechVPCPubSNRT
+
+Outputs:
+
+  VPCId:
+    Description: The ID of the VPC
+    Value: !Ref EffulgenceTechVPC
+    Export:
+      Name: !Sub "${pNetworkName}-VPC"
+
+  PrivateSubnetId:
+    Description: The ID of the PrivateSubnet
+    Value: !Ref EffulgenceTechVPCPrivSN
+    Export:
+      Name: !Sub "${pNetworkName}-PrivSN"
+
+  PublicSubnetId:
+    Description: The ID of the PubblicSubnet
+    Value: !Ref EffulgenceTechVPCPubSN
+    Export:
+      Name: !Sub "${pNetworkName}-PubSubnet"
+
+  InternetGatewayId:
+    Description: The ID of the InternetGateway
+    Value: !Ref EffulgenceTechVPCIGW
+    Export:
+      Name: !Sub "${pNetworkName}-InternetGateway"
+
+  
+
+  
+
+  
+  

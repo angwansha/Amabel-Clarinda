@@ -1,0 +1,19 @@
+{
+    "StackName": "Security1",
+    "Parameter": [
+        {
+            "parameterKey": "AppSecurityGroupName",
+            "ParameterValue": "Effulgencetech-App-SG"
+
+        },
+        { "parameterKey": "WebSecurityGroupName",
+        "ParameterValue": "Effulgencetech-Web-SG"
+
+        },
+        {
+            "parameterKey": "ELBSecurityGroupName",
+            "ParameterValue": "Effulgencetech-ELB-SG"
+        }
+    ]
+    
+}
